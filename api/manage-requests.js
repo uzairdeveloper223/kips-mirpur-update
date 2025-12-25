@@ -22,7 +22,16 @@ export default async function handler(req, res) {
     }
 
     // specific auth check
-    const key = req.query.key || req.body?.key;
+    let body = req.body;
+    if (typeof body === 'string') {
+        try {
+            body = JSON.parse(body);
+        } catch (e) {
+            console.error('JSON parse error', e);
+        }
+    }
+
+    const key = req.query.key || body?.key;
     if (key !== ADMIN_KEY) {
         return res.status(401).json({ error: 'Unauthorized. Invalid Admin Key.' });
     }
@@ -43,7 +52,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, suggestions });
         }
         else if (req.method === 'POST') {
-            const { id, status } = JSON.parse(req.body);
+            const { id, status } = body; // Use parsed body
 
             if (!id || !['approved', 'denied'].includes(status)) {
                 return res.status(400).json({ error: 'Invalid parameters' });
