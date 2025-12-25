@@ -4,7 +4,7 @@
 
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(process.env.NEON_DATABASE_URL);
+// const sql = neon(process.env.NEON_DATABASE_URL); // MOVED INSIDE HANDLER
 
 export default async function handler(req, res) {
     // Enable CORS
@@ -14,6 +14,13 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    if (!process.env.NEON_DATABASE_URL) {
+        return res.status(500).json({
+            success: false,
+            error: 'Server configuration error: Database connection is missing.'
+        });
     }
 
     const { androidid } = req.query;
@@ -26,6 +33,8 @@ export default async function handler(req, res) {
     }
 
     try {
+        const sql = neon(process.env.NEON_DATABASE_URL);
+
         // Fetch user's suggestions ordered by most recent first
         const suggestions = await sql`
             SELECT id, message, has_image, image_url, status, created_at

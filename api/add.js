@@ -5,7 +5,7 @@
 import { neon } from '@neondatabase/serverless';
 
 // TODO: Add your Neon DB connection string as environment variable NEON_DATABASE_URL
-const sql = neon(process.env.NEON_DATABASE_URL);
+// const sql = neon(process.env.NEON_DATABASE_URL); // MOVED INSIDE HANDLER
 
 export default async function handler(req, res) {
     // Enable CORS
@@ -15,6 +15,14 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    if (!process.env.NEON_DATABASE_URL) {
+        console.error('Error: NEON_DATABASE_URL is not set');
+        return res.status(500).json({
+            success: false,
+            error: 'Server configuration error: Database connection is missing.'
+        });
     }
 
     const { message, image, imgsrc, androidid } = req.query;
@@ -28,12 +36,14 @@ export default async function handler(req, res) {
     }
 
     try {
+        const sql = neon(process.env.NEON_DATABASE_URL);
+
         // Decode base64 message
         const decodedMessage = Buffer.from(message, 'base64').toString('utf-8');
 
         // Check if user has a pending request
         const pendingCheck = await sql`
-            SELECT id FROM suggestions 
+            SELECT id FROM suggestions
             WHERE android_id = ${androidid} AND status = 'pending'
             LIMIT 1
         `;

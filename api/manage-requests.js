@@ -4,7 +4,7 @@
 
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(process.env.NEON_DATABASE_URL);
+// const sql = neon(process.env.NEON_DATABASE_URL); // MOVED INSIDE HANDLER
 const ADMIN_KEY = process.env.ADMIN_KEY;
 
 export default async function handler(req, res) {
@@ -17,6 +17,10 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
+    if (!process.env.NEON_DATABASE_URL) {
+        return res.status(500).json({ error: 'Server configuration error: Database connection is missing.' });
+    }
+
     // specific auth check
     const key = req.query.key || req.body?.key;
     if (key !== ADMIN_KEY) {
@@ -24,6 +28,8 @@ export default async function handler(req, res) {
     }
 
     try {
+        const sql = neon(process.env.NEON_DATABASE_URL);
+
         if (req.method === 'GET') {
             // Fetch all suggestions, ordered by pending first, then by date
             const suggestions = await sql`
