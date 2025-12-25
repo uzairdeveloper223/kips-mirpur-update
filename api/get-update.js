@@ -1,7 +1,7 @@
 // API endpoint: /api/get-update?version={current_version}
 // Checks GitHub repo for updates and returns update info or 63887 if latest
 
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/uzairdeveloper223/kips_mirpur_update/main';
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/uzairdeveloper223/kips-mirpur-update/main';
 
 export default async function handler(req, res) {
     // Enable CORS
